@@ -6,6 +6,7 @@ import { useState, useRef, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Send, Bot, User } from "lucide-react"
+import { useChat } from "@/hooks/use-chat"
 
 interface Message {
   id: string
@@ -24,14 +25,14 @@ interface ContentIdea {
 
 interface ChatInterfaceProps {
   messages: Message[]
-  setMessages: (messages: Message[]) => void
+  setMessages: (messages: Message[] | ((prev: Message[]) => Message[])) => void
   onIdeaGenerated: (idea: ContentIdea) => void
 }
 
 export function ChatInterface({ messages, setMessages, onIdeaGenerated }: ChatInterfaceProps) {
   const [input, setInput] = useState("")
-  const [isLoading, setIsLoading] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const { sendMessage, isLoading } = useChat()
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
@@ -40,38 +41,6 @@ export function ChatInterface({ messages, setMessages, onIdeaGenerated }: ChatIn
   useEffect(() => {
     scrollToBottom()
   }, [messages])
-
-  const generateMockIdea = (userMessage: string): ContentIdea => {
-    // Simulamos diferentes respuestas basadas en el input del usuario
-    const ideas = [
-      {
-        hook: "¿Sabías que puedes hacer esto en 30 segundos?",
-        format: "Tutorial rápido",
-        audioType: "Trending sound viral",
-        visualStyle: "Close-up con transiciones",
-        duration: "15-30 segundos",
-        target: "Millennials y Gen Z",
-      },
-      {
-        hook: "POV: Cuando descubres este hack",
-        format: "Antes y después",
-        audioType: "Audio original con música de fondo",
-        visualStyle: "Split screen",
-        duration: "30-60 segundos",
-        target: "Usuarios de 18-35 años",
-      },
-      {
-        hook: "Esto cambió mi vida completamente",
-        format: "Storytelling personal",
-        audioType: "Voiceover emocional",
-        visualStyle: "Secuencia narrativa",
-        duration: "45-60 segundos",
-        target: "Audiencia amplia",
-      },
-    ]
-
-    return ideas[Math.floor(Math.random() * ideas.length)]
-  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -85,37 +54,45 @@ export function ChatInterface({ messages, setMessages, onIdeaGenerated }: ChatIn
 
     setMessages([...messages, userMessage])
     setInput("")
-    setIsLoading(true)
 
-    // Simular respuesta del asistente
-    setTimeout(() => {
-      const idea = generateMockIdea(input)
-
+    try {
+      const responseMessage = await sendMessage(input)
+      
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: "assistant",
-        content: `¡Perfecto! He generado una idea de contenido para ti. Aquí tienes una propuesta que podría funcionar muy bien:
-
-**Hook sugerido:** "${idea.hook}"
-
-**Formato:** ${idea.format}
-**Tipo de audio:** ${idea.audioType}
-**Estilo visual:** ${idea.visualStyle}
-**Duración:** ${idea.duration}
-**Audiencia objetivo:** ${idea.target}
-
-Esta idea está diseñada para maximizar el engagement y aprovechar las tendencias actuales. ¿Te gusta la propuesta? Puedes ir al editor para empezar a crear tu video.`,
+        content: responseMessage,
       }
 
-      setMessages((prev) => [...prev, assistantMessage])
-      onIdeaGenerated(idea)
-      setIsLoading(false)
-    }, 2000)
+      setMessages((prev: Message[]) => [...prev, assistantMessage])
+      
+      // Si la respuesta contiene información estructurada de idea de contenido
+      // intentamos parsearla y generar una idea
+      if (responseMessage.toLowerCase().includes('hook') || 
+          responseMessage.toLowerCase().includes('formato') ||
+          responseMessage.toLowerCase().includes('audiencia')) {
+        const mockIdea: ContentIdea = {
+          hook: "Idea generada por IA",
+          format: "Basado en respuesta del chatbot",
+          audioType: "Sugerido por IA",
+          visualStyle: "Estilo recomendado",
+          duration: "Duración optimizada",
+          target: "Audiencia identificada",
+        }
+        onIdeaGenerated(mockIdea)
+      }
+    } catch (error) {
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        role: "assistant",
+        content: error instanceof Error ? error.message : "Ha ocurrido un error inesperado. Por favor, intenta de nuevo.",
+      }
+      setMessages((prev: Message[]) => [...prev, errorMessage])
+    }
   }
 
   return (
     <div className="flex flex-col h-full">
-      {/* Messages */}
       <div className="flex-1 overflow-y-auto p-6 space-y-4">
         {messages.map((message) => (
           <div key={message.id} className={`flex gap-3 ${message.role === "user" ? "justify-end" : "justify-start"}`}>
@@ -165,13 +142,12 @@ Esta idea está diseñada para maximizar el engagement y aprovechar las tendenci
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input */}
       <div className="p-6 border-t border-slate-100">
         <form onSubmit={handleSubmit} className="flex gap-3">
           <Input
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Describe tu marca o el tipo de contenido que quieres crear..."
+            placeholder=""
             className="flex-1 rounded-xl border-slate-200 focus:border-purple-300 focus:ring-purple-200"
             disabled={isLoading}
           />
