@@ -35,7 +35,7 @@ export function ChatScreen({ onComplete }: ChatScreenProps) {
   ])
 
   const handleIdeaGenerated = (idea: ContentIdea) => {
-    // Aquí podrías manejar la idea generada si es necesario
+    // Aquí podrías manejar la idea generada si es necesario test
   }
 
   const handleComplete = () => {
