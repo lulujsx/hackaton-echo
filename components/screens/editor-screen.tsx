@@ -4,7 +4,7 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Save, Download, ArrowLeft, RefreshCw, Play, Pause, Volume2, VolumeX } from "lucide-react"
+import { Save, Download, ArrowLeft, Play, Pause, SkipBack, SkipForward, ImageIcon } from "lucide-react"
 import type { UserPersona } from "@/app/page"
 
 interface EditorScreenProps {
@@ -13,99 +13,97 @@ interface EditorScreenProps {
   onBackToScript: () => void
 }
 
-interface GeneratedImage {
+interface ImageSlide {
   id: string
   url: string
-  prompt: string
-  section: string
+  alt: string
+  duration: number
 }
 
-const mockImages: GeneratedImage[] = [
-  {
-    id: "1",
-    url: "/placeholder.svg?height=400&width=300&text=Hook+Visual",
-    prompt: "Persona joven mirando su teléfono con expresión preocupada",
-    section: "Hook",
-  },
-  {
-    id: "2",
-    url: "/placeholder.svg?height=400&width=300&text=Problem+Scene",
-    prompt: "Calculadora y billetes esparcidos en una mesa",
-    section: "Problema",
-  },
-  {
-    id: "3",
-    url: "/placeholder.svg?height=400&width=300&text=App+Interface",
-    prompt: "Interfaz de aplicación móvil de finanzas",
-    section: "Solución",
-  },
-  {
-    id: "4",
-    url: "/placeholder.svg?height=400&width=300&text=Success+Story",
-    prompt: "Persona sonriendo mientras usa la aplicación",
-    section: "Resultado",
-  },
-  {
-    id: "5",
-    url: "/placeholder.svg?height=400&width=300&text=CTA+Visual",
-    prompt: "Botón de descarga con efectos visuales llamativos",
-    section: "Call to Action",
-  },
-]
-
 export function EditorScreen({ persona, script, onBackToScript }: EditorScreenProps) {
-  const [selectedImage, setSelectedImage] = useState<string>(mockImages[0].id)
-  const [isPlaying, setIsPlaying] = useState(false)
-  const [isMuted, setIsMuted] = useState(false)
   const [currentSlide, setCurrentSlide] = useState(0)
+  const [isPlaying, setIsPlaying] = useState(false)
+
+  // Mock generated images
+  const imageSlides: ImageSlide[] = [
+    {
+      id: "1",
+      url: "/placeholder.svg?height=400&width=300&text=Hook+Visual",
+      alt: "Hook visual - ¿Te pasa que no sabés en qué se te va la plata?",
+      duration: 3,
+    },
+    {
+      id: "2",
+      url: "/placeholder.svg?height=400&width=300&text=App+Screenshot",
+      alt: "Screenshot de la app mostrando categorías de gastos",
+      duration: 4,
+    },
+    {
+      id: "3",
+      url: "/placeholder.svg?height=400&width=300&text=Before+After",
+      alt: "Comparación antes/después de usar la app",
+      duration: 3,
+    },
+    {
+      id: "4",
+      url: "/placeholder.svg?height=400&width=300&text=Call+to+Action",
+      alt: "Call to action con link en bio",
+      duration: 2,
+    },
+  ]
 
   const handleSave = () => {
-    // Simular guardado
     console.log("Guardando proyecto...")
   }
 
   const handleExport = () => {
-    // Simular exportación
     console.log("Exportando video...")
   }
 
-  const scriptSections = script.split("\n\n").filter((section) => section.trim())
+  const togglePlayback = () => {
+    setIsPlaying(!isPlaying)
+  }
+
+  const nextSlide = () => {
+    setCurrentSlide((prev) => (prev + 1) % imageSlides.length)
+  }
+
+  const prevSlide = () => {
+    setCurrentSlide((prev) => (prev - 1 + imageSlides.length) % imageSlides.length)
+  }
 
   return (
     <div className="min-h-screen bg-[#F8F9FA]">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4">
-        <div className="container mx-auto max-w-7xl">
+      <div className="bg-white border-b border-[#dee2e6] px-6 py-4">
+        <div className="container max-w-7xl mx-auto">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <Button
-                onClick={onBackToScript}
                 variant="outline"
-                className="h-10 px-4 rounded-md border-gray-300 text-[#212529] hover:bg-gray-50 transition-colors duration-150 bg-transparent"
+                onClick={onBackToScript}
+                className="btn-height border-[#dee2e6] text-[#6c757d] hover:bg-[#f8f9fa] bg-transparent"
               >
                 <ArrowLeft className="w-4 h-4 mr-2" />
-                Volver a editar guion
+                Volver a editar guión
               </Button>
-              <div className="h-6 w-px bg-gray-300"></div>
-              <h1 className="text-xl font-semibold text-[#212529]">Editor de contenido final</h1>
-              <Badge variant="secondary" className="bg-gray-100 text-[#212529]">
-                {persona.name}
-              </Badge>
+
+              <div>
+                <h1 className="text-2xl font-bold text-[#212529]">Editor de contenido final</h1>
+                <p className="text-sm text-[#6c757d]">Persona: {persona.name}</p>
+              </div>
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex gap-3">
               <Button
-                onClick={handleSave}
                 variant="outline"
-                className="h-10 px-4 rounded-md border-gray-300 text-[#212529] hover:bg-gray-50 transition-colors duration-150 bg-transparent"
+                onClick={handleSave}
+                className="btn-height border-[#dee2e6] text-[#6c757d] hover:bg-[#f8f9fa] bg-transparent"
               >
                 <Save className="w-4 h-4 mr-2" />
                 Guardar
               </Button>
-              <Button
-                onClick={handleExport}
-                className="h-10 px-4 rounded-md bg-[#212529] text-white hover:bg-gray-800 transition-colors duration-150"
-              >
+              <Button onClick={handleExport} className="btn-height bg-[#212529] hover:bg-[#212529]/90 text-white">
                 <Download className="w-4 h-4 mr-2" />
                 Exportar
               </Button>
@@ -114,52 +112,45 @@ export function EditorScreen({ persona, script, onBackToScript }: EditorScreenPr
         </div>
       </div>
 
-      <div className="container mx-auto px-6 py-8 max-w-7xl">
+      {/* Main Editor */}
+      <div className="container max-w-7xl mx-auto px-6 py-6">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Left Column - Image Carousel */}
           <div className="space-y-6">
-            <Card className="rounded-md border border-gray-200 bg-white shadow-sm">
-              <CardHeader className="pb-4">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-lg text-[#212529]">Imágenes generadas</CardTitle>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="h-8 px-3 rounded-md border-gray-300 text-[#212529] hover:bg-gray-50 bg-transparent"
-                  >
-                    <RefreshCw className="w-4 h-4 mr-1" />
-                    Regenerar
-                  </Button>
-                </div>
+            <Card className="bg-white border-[#dee2e6] card-rounded">
+              <CardHeader>
+                <CardTitle className="text-lg text-[#212529] flex items-center gap-2">
+                  <ImageIcon className="w-5 h-5" />
+                  Imágenes generadas
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4 max-h-[600px] overflow-y-auto">
-                  {mockImages.map((image, index) => (
+                <div className="space-y-4 max-h-[600px] overflow-y-auto custom-scrollbar">
+                  {imageSlides.map((slide, index) => (
                     <div
-                      key={image.id}
-                      className={`p-4 rounded-md border cursor-pointer transition-all duration-150 ${
-                        selectedImage === image.id
-                          ? "border-[#212529] bg-gray-50"
-                          : "border-gray-200 hover:border-gray-300"
+                      key={slide.id}
+                      className={`border-2 card-rounded overflow-hidden cursor-pointer smooth-transition ${
+                        index === currentSlide
+                          ? "border-[#212529] shadow-md"
+                          : "border-[#dee2e6] hover:border-[#6c757d]"
                       }`}
-                      onClick={() => setSelectedImage(image.id)}
+                      onClick={() => setCurrentSlide(index)}
                     >
-                      <div className="flex gap-4">
+                      <div className="aspect-[3/4] bg-[#f8f9fa] flex items-center justify-center">
                         <img
-                          src={image.url || "/placeholder.svg"}
-                          alt={image.prompt}
-                          className="w-20 h-24 object-cover rounded-md bg-gray-100"
+                          src={slide.url || "/placeholder.svg"}
+                          alt={slide.alt}
+                          className="w-full h-full object-cover"
                         />
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-2">
-                            <Badge variant="outline" className="text-xs">
-                              {image.section}
-                            </Badge>
-                            <span className="text-xs text-gray-500">#{index + 1}</span>
-                          </div>
-                          <p className="text-sm text-[#212529] font-medium mb-1">Slide {index + 1}</p>
-                          <p className="text-xs text-gray-600 leading-relaxed">{image.prompt}</p>
+                      </div>
+                      <div className="p-3 bg-white">
+                        <div className="flex items-center justify-between mb-2">
+                          <Badge variant="outline" className="text-xs border-[#dee2e6] text-[#6c757d]">
+                            Slide {index + 1}
+                          </Badge>
+                          <span className="text-xs text-[#6c757d]">{slide.duration}s</span>
                         </div>
+                        <p className="text-sm text-[#212529] line-clamp-2">{slide.alt}</p>
                       </div>
                     </div>
                   ))}
@@ -170,131 +161,89 @@ export function EditorScreen({ persona, script, onBackToScript }: EditorScreenPr
 
           {/* Right Column - TikTok Preview */}
           <div className="space-y-6">
-            <Card className="rounded-md border border-gray-200 bg-white shadow-sm">
-              <CardHeader className="pb-4">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-lg text-[#212529]">Vista previa TikTok</CardTitle>
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setIsMuted(!isMuted)}
-                      className="h-8 w-8 p-0 rounded-md border-gray-300"
-                    >
-                      {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setIsPlaying(!isPlaying)}
-                      className="h-8 px-3 rounded-md border-gray-300"
-                    >
-                      {isPlaying ? (
-                        <>
-                          <Pause className="w-4 h-4 mr-1" />
-                          Pausar
-                        </>
-                      ) : (
-                        <>
-                          <Play className="w-4 h-4 mr-1" />
-                          Reproducir
-                        </>
-                      )}
-                    </Button>
-                  </div>
-                </div>
+            <Card className="bg-white border-[#dee2e6] card-rounded">
+              <CardHeader>
+                <CardTitle className="text-lg text-[#212529]">Vista previa TikTok</CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="flex justify-center">
                 {/* Phone Mockup */}
-                <div className="mx-auto max-w-sm">
-                  <div className="relative bg-black rounded-[2rem] p-2 shadow-xl">
-                    <div className="bg-white rounded-[1.5rem] overflow-hidden aspect-[9/16]">
-                      {/* TikTok Interface */}
-                      <div className="relative h-full bg-black">
-                        {/* Current Image */}
+                <div className="relative">
+                  <div className="w-[280px] h-[500px] bg-black rounded-[30px] p-2">
+                    <div className="w-full h-full bg-white rounded-[25px] overflow-hidden relative">
+                      {/* Video Preview */}
+                      <div className="aspect-[9/16] bg-[#f8f9fa] relative">
                         <img
-                          src={mockImages[currentSlide]?.url || mockImages[0].url}
-                          alt="Current slide"
+                          src={imageSlides[currentSlide]?.url || "/placeholder.svg"}
+                          alt={imageSlides[currentSlide]?.alt}
                           className="w-full h-full object-cover"
                         />
 
-                        {/* Overlay Content */}
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent">
-                          {/* Progress Bars */}
-                          <div className="absolute top-4 left-4 right-4 flex gap-1">
-                            {mockImages.map((_, index) => (
-                              <div
-                                key={index}
-                                className={`h-0.5 flex-1 rounded-full transition-colors duration-150 ${
-                                  index === currentSlide ? "bg-white" : "bg-white/30"
-                                }`}
-                              />
-                            ))}
-                          </div>
+                        {/* Play/Pause Overlay */}
+                        <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={togglePlayback}
+                            className="w-12 h-12 bg-white/20 hover:bg-white/30 text-white rounded-full"
+                          >
+                            {isPlaying ? <Pause className="w-6 h-6" /> : <Play className="w-6 h-6" />}
+                          </Button>
+                        </div>
 
-                          {/* Script Text */}
-                          <div className="absolute bottom-20 left-4 right-4">
-                            <div className="bg-black/50 rounded-lg p-3 backdrop-blur-sm">
-                              <p className="text-white text-sm leading-relaxed">
-                                {scriptSections[currentSlide] ||
-                                  scriptSections[0] ||
-                                  "Texto del guion aparecerá aquí..."}
-                              </p>
-                            </div>
-                          </div>
-
-                          {/* TikTok UI Elements */}
-                          <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                              <div className="w-8 h-8 bg-white rounded-full"></div>
-                              <span className="text-white text-sm font-medium">@{persona.name.toLowerCase()}</span>
-                            </div>
-                            <div className="flex items-center gap-4 text-white">
-                              <div className="text-center">
-                                <div className="w-8 h-8 bg-white/20 rounded-full mb-1"></div>
-                                <span className="text-xs">12.3K</span>
-                              </div>
-                              <div className="text-center">
-                                <div className="w-8 h-8 bg-white/20 rounded-full mb-1"></div>
-                                <span className="text-xs">1.2K</span>
-                              </div>
-                              <div className="text-center">
-                                <div className="w-8 h-8 bg-white/20 rounded-full mb-1"></div>
-                                <span className="text-xs">Share</span>
-                              </div>
-                            </div>
+                        {/* Script Overlay */}
+                        <div className="absolute bottom-4 left-4 right-4">
+                          <div className="bg-black/60 text-white p-3 rounded-lg text-sm">
+                            {script.split("\n").slice(0, 3).join("\n")}...
                           </div>
                         </div>
                       </div>
                     </div>
                   </div>
 
-                  {/* Slide Navigation */}
-                  <div className="flex justify-center gap-2 mt-6">
-                    {mockImages.map((_, index) => (
-                      <Button
-                        key={index}
-                        variant={index === currentSlide ? "default" : "outline"}
-                        size="sm"
-                        onClick={() => setCurrentSlide(index)}
-                        className="w-8 h-8 p-0 rounded-md text-xs"
-                      >
-                        {index + 1}
-                      </Button>
-                    ))}
+                  {/* Controls */}
+                  <div className="mt-4 flex justify-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={prevSlide}
+                      className="border-[#dee2e6] hover:bg-[#f8f9fa] bg-transparent"
+                    >
+                      <SkipBack className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={togglePlayback}
+                      className="border-[#dee2e6] hover:bg-[#f8f9fa] bg-transparent"
+                    >
+                      {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={nextSlide}
+                      className="border-[#dee2e6] hover:bg-[#f8f9fa] bg-transparent"
+                    >
+                      <SkipForward className="w-4 h-4" />
+                    </Button>
+                  </div>
+
+                  {/* Slide Indicator */}
+                  <div className="mt-2 text-center text-sm text-[#6c757d]">
+                    {currentSlide + 1} / {imageSlides.length}
                   </div>
                 </div>
               </CardContent>
             </Card>
 
             {/* Script Preview */}
-            <Card className="rounded-md border border-gray-200 bg-white shadow-sm">
-              <CardHeader className="pb-4">
-                <CardTitle className="text-lg text-[#212529]">Guion completo</CardTitle>
+            <Card className="bg-white border-[#dee2e6] card-rounded">
+              <CardHeader>
+                <CardTitle className="text-lg text-[#212529]">Guión completo</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="max-h-60 overflow-y-auto">
-                  <pre className="text-xs text-gray-700 leading-relaxed whitespace-pre-wrap font-mono">{script}</pre>
+                <div className="max-h-[200px] overflow-y-auto custom-scrollbar">
+                  <pre className="text-sm text-[#212529] whitespace-pre-wrap font-sans leading-relaxed">{script}</pre>
                 </div>
               </CardContent>
             </Card>

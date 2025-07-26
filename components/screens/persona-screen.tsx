@@ -3,7 +3,8 @@
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { Loader2 } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
+import { Loader2, User, Play } from "lucide-react"
 import type { ProductInfo, UserPersona } from "@/app/page"
 
 interface PersonaScreenProps {
@@ -11,7 +12,7 @@ interface PersonaScreenProps {
   onPersonaSelected: (persona: UserPersona, script: string) => void
 }
 
-const mockPersonas: UserPersona[] = [
+const personas: UserPersona[] = [
   {
     id: "1",
     name: "Julieta",
@@ -29,56 +30,55 @@ const mockPersonas: UserPersona[] = [
     age: 29,
     occupation: "freelancer en marketing digital",
     lifeContext:
-      "Vive solo en departamento céntrico, ingresos variables, busca optimizar sus finanzas para poder ahorrar e invertir.",
-    tiktokContent:
-      "Productividad, finanzas personales, lifestyle minimalista; tono directo, con datos y consejos prácticos.",
+      "Trabaja desde casa, maneja múltiples clientes y proyectos; busca herramientas que le ayuden a ser más productivo y organizado.",
+    tiktokContent: "Tips de productividad, herramientas digitales, vida freelancer; tono dinámico y motivacional.",
     productUsage:
-      "Como freelancer mis ingresos cambian cada mes. Esta app me ayuda a planificar mejor y ver patrones en mis gastos que antes no notaba. Ahora puedo separar plata para inversiones sin quedarme corto.",
+      "Como freelancer necesito tener todo controlado. Esta app me permite trackear gastos por proyecto y cliente. Antes perdía tiempo con Excel, ahora todo es automático y puedo enfocarme en lo que realmente importa.",
   },
   {
     id: "3",
-    name: "Carolina",
+    name: "Sofía",
     age: 24,
     occupation: "estudiante universitaria",
-    lifeContext: "Vive con roommates, presupuesto ajustado, primera experiencia manejando finanzas independientes.",
-    tiktokContent:
-      "Vida universitaria, tips de ahorro para estudiantes, recetas económicas; tono divertido y relatable.",
+    lifeContext:
+      "Estudia y trabaja medio tiempo, vive con roommates; busca controlar sus gastos con presupuesto limitado.",
+    tiktokContent: "Vida universitaria, tips de ahorro para estudiantes, recetas económicas; tono fresco y divertido.",
     productUsage:
-      "Mis papás siempre manejaron todo y cuando me mudé no tenía idea de cómo organizar mi plata. Con esta app aprendí a hacer presupuestos y ahora hasta me sobra para salir los fines de semana.",
+      "Siendo estudiante cada peso cuenta. Con esta app puedo ver exactamente en qué gasto mi plata y donde puedo ahorrar. Me encanta que pueda categorizar todo y que me mande alertas cuando me paso del presupuesto.",
   },
   {
     id: "4",
     name: "Roberto",
     age: 45,
-    occupation: "empleado de comercio",
+    occupation: "dueño de pequeño negocio",
     lifeContext:
-      "Casado, dos hijos adolescentes, busca planificar mejor los gastos familiares y ahorrar para el futuro de sus hijos.",
-    tiktokContent: "Consejos familiares, planificación financiera, experiencias de padre; tono maduro y confiable.",
+      "Maneja una ferretería familiar, combina ventas presenciales y online; busca digitalizar y optimizar procesos.",
+    tiktokContent:
+      "Consejos para pequeños negocios, emprendimiento familiar, tips de ventas; tono confiable y experimentado.",
     productUsage:
-      "Con los chicos creciendo los gastos se dispararon. Esta app me ayudó a ver dónde podíamos ajustar sin afectar lo importante. Ahora tenemos un fondo para la universidad de los pibes.",
+      "Tengo mi ferretería hace 15 años y siempre llevé las cuentas a la antigua. Esta app me ayudó a digitalizar todo sin complicarme. Ahora puedo ver las ganancias reales y planificar mejor las compras de mercadería.",
   },
   {
     id: "5",
-    name: "Sofía",
+    name: "Camila",
     age: 32,
     occupation: "profesional en recursos humanos",
     lifeContext:
-      "Soltera, enfocada en su carrera, busca optimizar sus finanzas para lograr independencia económica total.",
-    tiktokContent:
-      "Empoderamiento femenino, finanzas para mujeres independientes, desarrollo profesional; tono motivacional.",
+      "Trabaja en empresa multinacional, viaja frecuentemente por trabajo; busca simplicidad y eficiencia en sus finanzas personales.",
+    tiktokContent: "Carrera profesional, tips de organización, balance vida-trabajo; tono profesional pero accesible.",
     productUsage:
-      "Siempre fui buena ahorrando pero no sabía si lo hacía eficientemente. La app me mostró oportunidades de optimización que no veía. Ahora estoy más cerca de comprar mi departamento.",
+      "Con tanto viaje de trabajo se me complicaba llevar el control de gastos. Esta app sincroniza todo automáticamente y puedo categorizar gastos personales vs empresariales. Me simplificó la vida completamente.",
   },
   {
     id: "6",
     name: "Diego",
-    age: 26,
-    occupation: "emprendedor gastronómico",
+    age: 27,
+    occupation: "chef y emprendedor gastronómico",
     lifeContext:
-      "Maneja un food truck, ingresos diarios variables, necesita separar gastos personales de los del negocio.",
-    tiktokContent: "Emprendimiento, comida callejera, tips de negocio; tono auténtico y motivador.",
+      "Maneja un food truck y da clases de cocina; busca controlar costos de ingredientes y maximizar ganancias.",
+    tiktokContent: "Recetas, tips de cocina, emprendimiento gastronómico; tono creativo y apasionado.",
     productUsage:
-      "Al principio mezclaba todo, plata del negocio con gastos personales. Esta app me ayudó a separar las cuentas y ahora veo realmente cuánto gano y cuánto necesito para vivir.",
+      "En gastronomía los márgenes son ajustados. Esta app me permite trackear el costo real de cada plato y ver qué me conviene más. Antes calculaba todo mental, ahora tengo datos precisos para tomar decisiones.",
   },
 ]
 
@@ -89,89 +89,101 @@ export function PersonaScreen({ productInfo, onPersonaSelected }: PersonaScreenP
   const handleGenerateContent = async (persona: UserPersona) => {
     setLoadingPersona(persona.id)
 
-    // Simular llamada al backend para generar guion
+    // Simulate script generation
     setTimeout(() => {
-      const mockScript = `🎬 GUION PARA TIKTOK - ${persona.name}
+      const generatedScript = `
+🎬 GUIÓN PARA TIKTOK - ${persona.name.toUpperCase()}
 
-HOOK (0-3 segundos):
-"¿Te pasa que llegas a fin de mes y no sabés dónde se fue tu plata?"
+HOOK (0-3s):
+"¿Te pasa que no sabés en qué se te va la plata?"
 
-DESARROLLO (3-12 segundos):
-"Yo era igual que vos. ${persona.productUsage.substring(0, 100)}..."
+DESARROLLO (3-12s):
+${persona.productUsage}
 
-SOLUCIÓN (12-20 segundos):
-"Hasta que descubrí ${productInfo.name}. Ahora puedo:
-✅ Ver todos mis gastos en tiempo real
-✅ Crear presupuestos que realmente funcionen
-✅ Recibir alertas antes de pasarme
+CALL TO ACTION (12-15s):
+"Si te identificás, probá esta app que me cambió la vida financiera. Link en bio 👆"
 
-CALL TO ACTION (20-25 segundos):
-"Si querés tomar control de tu plata como yo, probá ${productInfo.name}. Link en mi bio 👆"
+ELEMENTOS VISUALES:
+- Mostrar pantalla del celular con la app
+- Transiciones dinámicas entre categorías
+- Gráficos simples de gastos
 
-#finanzaspersonales #ahorro #presupuesto #dinero #organizacion`
+MÚSICA: Trending sound optimista y energético
+HASHTAGS: #finanzaspersonales #ahorro #app #${persona.name.toLowerCase()}
+      `.trim()
 
-      onPersonaSelected(persona, mockScript)
+      onPersonaSelected(persona, generatedScript)
       setLoadingPersona(null)
     }, 2000)
   }
 
   return (
-    <div className="container mx-auto px-6 py-12 max-w-7xl">
-      <div className="text-center mb-12">
-        <h1 className="text-4xl font-bold text-[#212529] mb-4">Seleccionar user persona</h1>
-        <p className="text-lg text-gray-600">Elige el perfil de audiencia que mejor represente a tu público objetivo</p>
+    <div className="min-h-screen bg-[#F8F9FA]">
+      {/* Header */}
+      <div className="bg-white border-b border-[#dee2e6] px-6 py-6">
+        <div className="container max-w-7xl mx-auto">
+          <h1 className="text-3xl font-bold text-[#212529] mb-2">Seleccionar user persona</h1>
+          <p className="text-[#6c757d]">Elige el perfil que mejor represente a tu audiencia objetivo</p>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-        {mockPersonas.map((persona) => (
-          <Card
-            key={persona.id}
-            className="rounded-md border border-gray-200 bg-white shadow-sm hover:shadow-md transition-all duration-150 cursor-pointer relative overflow-hidden"
-            onMouseEnter={() => setHoveredCard(persona.id)}
-            onMouseLeave={() => setHoveredCard(null)}
-          >
-            <CardContent className="p-6">
-              <div className="space-y-4">
-                <div>
-                  <h3 className="text-xl font-semibold text-[#212529] mb-2">{persona.name}</h3>
-                  <p className="text-sm text-gray-600 font-medium">
-                    {persona.age} años, {persona.occupation}
-                  </p>
+      {/* Personas Grid */}
+      <div className="container max-w-7xl mx-auto px-6 py-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+          {personas.map((persona) => (
+            <Card
+              key={persona.id}
+              className={`bg-white border-[#dee2e6] card-rounded hover-lift smooth-transition cursor-pointer relative overflow-hidden ${
+                hoveredCard === persona.id ? "shadow-lg" : ""
+              }`}
+              onMouseEnter={() => setHoveredCard(persona.id)}
+              onMouseLeave={() => setHoveredCard(null)}
+            >
+              <CardContent className="p-6">
+                {/* Header */}
+                <div className="flex items-start gap-4 mb-4">
+                  <div className="w-12 h-12 bg-[#f8f9fa] border-2 border-[#dee2e6] rounded-full flex items-center justify-center flex-shrink-0">
+                    <User className="w-6 h-6 text-[#6c757d]" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-xl font-bold text-[#212529] mb-1">{persona.name}</h3>
+                    <p className="text-sm text-[#6c757d]">
+                      {persona.age} años, {persona.occupation}
+                    </p>
+                  </div>
                 </div>
 
-                <div>
-                  <h4 className="text-sm font-semibold text-[#212529] mb-2">Contexto de vida:</h4>
-                  <p className="text-sm text-gray-700 leading-relaxed">{persona.lifeContext}</p>
+                {/* Content */}
+                <div className="space-y-4">
+                  <div>
+                    <Badge variant="outline" className="mb-2 text-xs border-[#dee2e6] text-[#6c757d]">
+                      Contexto de vida
+                    </Badge>
+                    <p className="text-sm text-[#212529] leading-relaxed">{persona.lifeContext}</p>
+                  </div>
+
+                  <div>
+                    <Badge variant="outline" className="mb-2 text-xs border-[#dee2e6] text-[#6c757d]">
+                      Contenido en TikTok
+                    </Badge>
+                    <p className="text-sm text-[#212529] leading-relaxed">{persona.tiktokContent}</p>
+                  </div>
+
+                  <div>
+                    <Badge variant="outline" className="mb-2 text-xs border-[#dee2e6] text-[#6c757d]">
+                      Uso del producto
+                    </Badge>
+                    <p className="text-sm text-[#212529] leading-relaxed italic">"{persona.productUsage}"</p>
+                  </div>
                 </div>
 
-                <div>
-                  <h4 className="text-sm font-semibold text-[#212529] mb-2">Contenido en TikTok:</h4>
-                  <p className="text-sm text-gray-700 leading-relaxed">{persona.tiktokContent}</p>
-                </div>
-
-                <div>
-                  <h4 className="text-sm font-semibold text-[#212529] mb-2">Uso del producto:</h4>
-                  <blockquote className="text-sm text-gray-700 italic leading-relaxed border-l-4 border-gray-300 pl-4">
-                    "{persona.productUsage}"
-                  </blockquote>
-                </div>
-              </div>
-
-              {/* Hover Buttons */}
-              {hoveredCard === persona.id && (
-                <div className="absolute inset-0 bg-black/5 flex items-end justify-end p-6 transition-opacity duration-150">
-                  <div className="flex gap-3">
-                    <Button
-                      variant="outline"
-                      disabled
-                      className="h-10 px-4 rounded-md border-gray-300 text-gray-400 cursor-not-allowed bg-transparent"
-                    >
-                      Editar user
-                    </Button>
+                {/* Hover Buttons */}
+                {hoveredCard === persona.id && (
+                  <div className="absolute inset-0 bg-black/5 flex items-center justify-center gap-3 fade-in">
                     <Button
                       onClick={() => handleGenerateContent(persona)}
                       disabled={loadingPersona === persona.id}
-                      className="h-10 px-4 rounded-md bg-[#212529] text-white hover:bg-gray-800 transition-colors duration-150"
+                      className="btn-height bg-[#212529] hover:bg-[#212529]/90 text-white smooth-transition"
                     >
                       {loadingPersona === persona.id ? (
                         <>
@@ -179,15 +191,25 @@ CALL TO ACTION (20-25 segundos):
                           Generando...
                         </>
                       ) : (
-                        "Generar contenido"
+                        <>
+                          <Play className="w-4 h-4 mr-2" />
+                          Generar contenido
+                        </>
                       )}
                     </Button>
+                    <Button
+                      variant="outline"
+                      disabled
+                      className="btn-height border-[#dee2e6] text-[#6c757d] opacity-50 cursor-not-allowed bg-transparent"
+                    >
+                      Editar user
+                    </Button>
                   </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        ))}
+                )}
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       </div>
     </div>
   )

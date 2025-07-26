@@ -1,7 +1,5 @@
 "use client"
 
-import type React from "react"
-
 import { useState, useRef, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -26,10 +24,10 @@ export function ChatScreen({ onComplete }: ChatScreenProps) {
       id: "1",
       role: "assistant",
       content:
-        "¡Hola! Soy tu asistente para crear contenido de TikTok. Para empezar, cuéntame sobre tu marca o producto. ¿Cómo se llama y qué hace?",
+        "¡Hola! Soy tu asistente para crear contenido. Vamos a conocer mejor tu marca o producto. ¿Cómo se llama tu producto o servicio?",
     },
   ])
-  const [input, setInput] = useState("")
+  const [inputValue, setInputValue] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [questionCount, setQuestionCount] = useState(0)
   const messagesEndRef = useRef<HTMLDivElement>(null)
@@ -42,165 +40,169 @@ export function ChatScreen({ onComplete }: ChatScreenProps) {
     scrollToBottom()
   }, [messages])
 
-  const generateNextQuestion = (userResponse: string, count: number): { content: string; isFinal: boolean } => {
-    const questions = [
-      "Perfecto. ¿Cuál es tu público objetivo principal? ¿A quién está dirigido tu producto?",
-      "Excelente. ¿Cuáles son las principales características o beneficios que destacarías de tu producto?",
-      "Muy bien. ¿Qué problema específico resuelve tu producto en la vida de tus usuarios?",
-      "Genial. ¿Hay algún aspecto único o diferenciador que te gustaría destacar en el contenido?",
-      "Perfecto, tengo toda la información que necesito sobre tu producto. ¿Hay algo más que te gustaría agregar o modificar antes de continuar con la selección de audiencia?",
-    ]
+  const questions = [
+    "¿Cómo se llama tu producto o servicio?",
+    "¿Podrías describir brevemente qué hace tu producto?",
+    "¿Cuál es tu mercado objetivo principal?",
+    "¿Cuáles son las características más importantes de tu producto?",
+    "¿Qué problema específico resuelve tu producto para los usuarios?",
+  ]
 
-    const isFinal = count >= 4
-    return {
-      content: questions[Math.min(count, questions.length - 1)],
-      isFinal,
-    }
-  }
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!input.trim() || isLoading) return
+  const handleSendMessage = async () => {
+    if (!inputValue.trim() || isLoading) return
 
     const userMessage: Message = {
       id: Date.now().toString(),
       role: "user",
-      content: input,
+      content: inputValue,
     }
 
     setMessages((prev) => [...prev, userMessage])
-    setInput("")
+    setInputValue("")
     setIsLoading(true)
 
-    // Simular respuesta del backend
+    // Simulate AI response
     setTimeout(() => {
-      const nextQuestion = generateNextQuestion(input, questionCount)
+      const nextQuestionIndex = questionCount + 1
+      const isLastQuestion = nextQuestionIndex >= questions.length - 1
 
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: "assistant",
-        content: nextQuestion.content,
-        isFinalQuestion: nextQuestion.isFinal,
+        content: isLastQuestion
+          ? "Perfecto, ya tengo toda la información necesaria sobre tu producto. ¿Estás listo para continuar con la selección de personas?"
+          : questions[nextQuestionIndex] || "Cuéntame más detalles sobre tu producto.",
+        isFinalQuestion: isLastQuestion,
       }
 
       setMessages((prev) => [...prev, assistantMessage])
-      setQuestionCount((prev) => prev + 1)
+      setQuestionCount(nextQuestionIndex)
       setIsLoading(false)
-    }, 1500)
+    }, 1000)
   }
 
   const handleContinue = () => {
-    // Simular extracción de información del producto
-    const mockProductInfo: ProductInfo = {
-      name: "MiApp Finanzas",
-      description: "Aplicación móvil para control de gastos personales",
-      targetMarket: "Familias jóvenes y adultos que buscan organizar sus finanzas",
-      features: ["Control de gastos", "Presupuestos", "Reportes", "Sincronización bancaria"],
+    // Extract product info from messages
+    const productInfo: ProductInfo = {
+      name: "Mi Producto", // This would be extracted from chat
+      description: "Descripción del producto basada en el chat",
+      targetMarket: "Mercado objetivo identificado",
+      features: ["Característica 1", "Característica 2"],
     }
-
-    onComplete(mockProductInfo)
+    onComplete(productInfo)
   }
 
-  const finalMessage = messages[messages.length - 1]
-  const showFinalButtons = finalMessage?.role === "assistant" && finalMessage?.isFinalQuestion && !isLoading
+  const handleKeepModifying = () => {
+    const newMessage: Message = {
+      id: Date.now().toString(),
+      role: "assistant",
+      content: "¿Qué te gustaría modificar o agregar sobre tu producto?",
+    }
+    setMessages((prev) => [...prev, newMessage])
+  }
 
   return (
-    <div className="container mx-auto px-6 py-12 max-w-4xl">
-      <div className="text-center mb-12">
-        <h1 className="text-4xl font-bold text-[#212529] mb-4">Tu marca / tu producto</h1>
-        <p className="text-lg text-gray-600">Cuéntanos sobre tu producto para crear contenido personalizado</p>
+    <div className="min-h-screen bg-[#F8F9FA] flex flex-col">
+      {/* Header */}
+      <div className="bg-white border-b border-[#dee2e6] px-6 py-6">
+        <div className="container max-w-4xl mx-auto">
+          <h1 className="text-3xl font-bold text-[#212529] mb-2">Tu marca / tu producto</h1>
+          <p className="text-[#6c757d]">Cuéntanos sobre tu producto para crear contenido personalizado</p>
+        </div>
       </div>
 
-      <Card className="rounded-md border border-gray-200 bg-white shadow-sm">
-        <div className="flex flex-col h-[600px]">
+      {/* Chat Container */}
+      <div className="flex-1 container max-w-4xl mx-auto px-6 py-6">
+        <Card className="h-[calc(100vh-200px)] flex flex-col bg-white border-[#dee2e6] card-rounded">
           {/* Messages */}
-          <div className="flex-1 overflow-y-auto p-6 space-y-6">
-            {messages.map((message) => (
-              <div
-                key={message.id}
-                className={`flex gap-4 ${message.role === "user" ? "justify-end" : "justify-start"}`}
-              >
-                {message.role === "assistant" && (
-                  <div className="w-10 h-10 bg-[#212529] rounded-md flex items-center justify-center flex-shrink-0">
-                    <Bot className="w-5 h-5 text-white" />
-                  </div>
-                )}
+          <div className="flex-1 p-6 overflow-y-auto custom-scrollbar">
+            <div className="space-y-6">
+              {messages.map((message) => (
+                <div
+                  key={message.id}
+                  className={`flex gap-4 ${message.role === "user" ? "justify-end" : "justify-start"}`}
+                >
+                  {message.role === "assistant" && (
+                    <div className="w-8 h-8 bg-[#212529] rounded-full flex items-center justify-center flex-shrink-0">
+                      <Bot className="w-4 h-4 text-white" />
+                    </div>
+                  )}
 
-                <div className="flex flex-col max-w-[80%]">
-                  <div
-                    className={`rounded-md px-4 py-3 ${
-                      message.role === "user" ? "bg-[#212529] text-white ml-auto" : "bg-gray-100 text-[#212529]"
-                    }`}
-                  >
-                    <p className="text-sm leading-relaxed">{message.content}</p>
+                  <div className={`max-w-[70%] ${message.role === "user" ? "order-first" : ""}`}>
+                    <div
+                      className={`p-4 card-rounded ${
+                        message.role === "user"
+                          ? "bg-[#212529] text-white"
+                          : "bg-[#f8f9fa] text-[#212529] border border-[#dee2e6]"
+                      }`}
+                    >
+                      <p className="text-sm leading-relaxed">{message.content}</p>
+                    </div>
+
+                    {/* Final question buttons */}
+                    {message.isFinalQuestion && (
+                      <div className="flex gap-3 mt-4 justify-end">
+                        <Button
+                          variant="outline"
+                          onClick={handleKeepModifying}
+                          className="btn-height border-[#dee2e6] text-[#6c757d] hover:bg-[#f8f9fa] smooth-transition bg-transparent"
+                        >
+                          Seguir modificando
+                        </Button>
+                        <Button
+                          onClick={handleContinue}
+                          className="btn-height bg-[#212529] hover:bg-[#212529]/90 text-white smooth-transition"
+                        >
+                          Ok. Continuar
+                        </Button>
+                      </div>
+                    )}
                   </div>
 
-                  {showFinalButtons && message.id === finalMessage.id && (
-                    <div className="flex gap-3 mt-4 justify-end">
-                      <Button
-                        variant="outline"
-                        className="h-10 px-6 rounded-md border-gray-300 text-[#212529] hover:bg-gray-50 transition-colors duration-150 bg-transparent"
-                      >
-                        Seguir modificando
-                      </Button>
-                      <Button
-                        onClick={handleContinue}
-                        className="h-10 px-6 rounded-md bg-[#212529] text-white hover:bg-gray-800 transition-colors duration-150"
-                      >
-                        Ok. Continuar
-                      </Button>
+                  {message.role === "user" && (
+                    <div className="w-8 h-8 bg-[#6c757d] rounded-full flex items-center justify-center flex-shrink-0">
+                      <User className="w-4 h-4 text-white" />
                     </div>
                   )}
                 </div>
+              ))}
 
-                {message.role === "user" && (
-                  <div className="w-10 h-10 bg-gray-300 rounded-md flex items-center justify-center flex-shrink-0">
-                    <User className="w-5 h-5 text-gray-600" />
+              {isLoading && (
+                <div className="flex gap-4 justify-start">
+                  <div className="w-8 h-8 bg-[#212529] rounded-full flex items-center justify-center flex-shrink-0">
+                    <Bot className="w-4 h-4 text-white" />
                   </div>
-                )}
-              </div>
-            ))}
-
-            {isLoading && (
-              <div className="flex gap-4 justify-start">
-                <div className="w-10 h-10 bg-[#212529] rounded-md flex items-center justify-center">
-                  <Bot className="w-5 h-5 text-white" />
-                </div>
-                <div className="bg-gray-100 rounded-md px-4 py-3">
-                  <div className="flex items-center gap-2">
-                    <Loader2 className="w-4 h-4 animate-spin text-[#212529]" />
-                    <span className="text-sm text-[#212529]">Escribiendo...</span>
+                  <div className="bg-[#f8f9fa] border border-[#dee2e6] p-4 card-rounded">
+                    <Loader2 className="w-4 h-4 animate-spin text-[#6c757d]" />
                   </div>
                 </div>
-              </div>
-            )}
-
+              )}
+            </div>
             <div ref={messagesEndRef} />
           </div>
 
           {/* Input */}
-          {!showFinalButtons && (
-            <div className="p-6 border-t border-gray-200">
-              <form onSubmit={handleSubmit} className="flex gap-3">
-                <Input
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  placeholder="Escribe tu respuesta aquí..."
-                  className="flex-1 h-10 rounded-md border-gray-300 focus:border-[#212529] focus:ring-[#212529] transition-colors duration-150"
-                  disabled={isLoading}
-                />
-                <Button
-                  type="submit"
-                  disabled={!input.trim() || isLoading}
-                  className="h-10 px-4 rounded-md bg-[#212529] text-white hover:bg-gray-800 transition-colors duration-150"
-                >
-                  {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-                </Button>
-              </form>
+          <div className="border-t border-[#dee2e6] p-6">
+            <div className="flex gap-3">
+              <Input
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                placeholder="Escribe tu respuesta..."
+                className="flex-1 border-[#dee2e6] focus:ring-[#212529] focus:border-[#212529] card-rounded"
+                onKeyPress={(e) => e.key === "Enter" && handleSendMessage()}
+                disabled={isLoading}
+              />
+              <Button
+                onClick={handleSendMessage}
+                disabled={!inputValue.trim() || isLoading}
+                className="btn-height bg-[#212529] hover:bg-[#212529]/90 text-white smooth-transition"
+              >
+                <Send className="w-4 h-4" />
+              </Button>
             </div>
-          )}
-        </div>
-      </Card>
+          </div>
+        </Card>
+      </div>
     </div>
   )
 }
